@@ -1,26 +1,228 @@
-Top Secret
-2/4/26
-Tianyao Liang (C)
+Top Secret - Program Control Documentation
+Team Member C: Noah Crozier
+Date: 2/10/26
 
-Role:
+===========================================
+ROLE & RESPONSIBILITIES
+===========================================
 
-Be the "glue" for the teammates to connect their code together
+Team Member C is responsible for the "Program Control" component, which acts as the 
+integration layer connecting:
+- command line interface (TopSecret.java)
+- file handler (FileHandler.java)
+- cipher component (Cipher.java)
 
+The ProgramController class provides two main functions:
+1. listFiles() - Returns a formatted list of available files
+2. displayFile() - Retrieves and returns file contents
 
-PSUEDOCODE:
+===========================================
+DESIGN OVERVIEW
+===========================================
 
-public void listFiles()
-    try{
+Class: ProgramController
 
-    } catch (){
+Dependencies:
+- FileHandler (Team Member B): Provides file system access
+- Cipher (Team Member D): Provides deciphering capabilities
 
-    }
+Public Methods:
+1. String listFiles()
+   - Calls fileHandler.getAvailableFiles() to get list of files
+   - Formats the list with numbers (01, 02, 03, etc.)
+   - Returns formatted string or error message
+   - Example output:
+     01 filea.txt
+     02 fileb.txt
+     03 filec.txt
 
-public void displayFile
+2. String displayFile(String fileNumberString, String keyPath)
+   - Parses the file number from string to integer
+   - Validates the file number is within valid range
+   - Calls fileHandler.readFile(filename) to get raw file contents
+   - If keyPath is provided:
+     * Calls cipher.loadKey(keyPath) to load the cipher key
+     * Calls cipher.decipher(rawText, key) to decipher the content
+   - Returns the file content (raw or deciphered) or error message
 
-TESTS
-if zero arguments, then should list the numbered files available
-if one valid argument, then should open correct value at the index given by that argument
-if two valid arguments, then should open a correct file and use the key given by user's second arg
+Error Handling:
+- Invalid file numbers
+- Non-numeric file number inputs
+- Empty or missing file lists
+- File reading errors
+- Cipher key loading errors
 
-if invalid arguments, then should reprompt the user
+===========================================
+INTERFACE CONTRACTS
+===========================================
+
+Expected from Team Member B (FileHandler):
+- List<String> getAvailableFiles()
+  Returns a list of filenames from the data folder
+
+- String readFile(String filename)
+  Returns the raw text content of the specified file
+
+Expected from Team Member D (Cipher):
+- CipherKey loadKey(String keyPath)
+  Loads and validates a cipher key from the specified path
+
+- String decipher(String cipheredText, CipherKey key)
+  Returns the deciphered text using the provided key
+
+===========================================
+TESTING PLAN
+===========================================
+
+UNIT TESTS FOR ProgramController:
+
+Test Suite 1: listFiles() Method
+---------------------------------
+Test 1.1: testListFilesWithMultipleFiles
+  Setup: Mock FileHandler to return ["filea.txt", "fileb.txt", "filec.txt"]
+  Expected: Returns "01 filea.txt\n02 fileb.txt\n03 filec.txt"
+  Purpose: Verify correct formatting of file list
+
+Test 1.2: testListFilesWithSingleFile
+  Setup: Mock FileHandler to return ["single.txt"]
+  Expected: Returns "01 single.txt"
+  Purpose: Verify single file is formatted correctly (no trailing newline)
+
+Test 1.3: testListFilesWithEmptyList
+  Setup: Mock FileHandler to return empty list
+  Expected: Returns "No files found."
+  Purpose: Verify graceful handling of empty file list
+
+Test 1.4: testListFilesWithNullList
+  Setup: Mock FileHandler to return null
+  Expected: Returns "No files found."
+  Purpose: Verify graceful handling of null response
+
+Test 1.5: testListFilesWithException
+  Setup: Mock FileHandler to throw exception
+  Expected: Returns "ERROR: Unable to list files."
+  Purpose: Verify error handling when file listing fails
+
+Test Suite 2: displayFile() Method - Basic Functionality
+---------------------------------------------------------
+Test 2.1: testDisplayFileValidNumberNoKey
+  Setup: Mock FileHandler with 3 files, request file "2" with null key
+  Expected: Returns raw content of second file
+  Purpose: Verify correct file retrieval without deciphering
+
+Test 2.2: testDisplayFileValidNumberWithKey
+  Setup: Mock FileHandler and Cipher, request file "1" with "ciphers/key.txt"
+  Expected: Returns deciphered content
+  Purpose: Verify correct file retrieval with deciphering
+
+Test 2.3: testDisplayFileFirstFile
+  Setup: Mock FileHandler with 3 files, request file "1"
+  Expected: Returns content of first file
+  Purpose: Verify boundary condition (first file)
+
+Test 2.4: testDisplayFileLastFile
+  Setup: Mock FileHandler with 3 files, request file "3"
+  Expected: Returns content of last file
+  Purpose: Verify boundary condition (last file)
+
+Test Suite 3: displayFile() Method - Error Handling
+----------------------------------------------------
+Test 3.1: testDisplayFileInvalidNumberTooLow
+  Setup: Mock FileHandler with 3 files, request file "0"
+  Expected: Returns "ERROR: Invalid file number."
+  Purpose: Verify validation of file number (too low)
+
+Test 3.2: testDisplayFileInvalidNumberTooHigh
+  Setup: Mock FileHandler with 3 files, request file "5"
+  Expected: Returns "ERROR: Invalid file number."
+  Purpose: Verify validation of file number (too high)
+
+Test 3.3: testDisplayFileNegativeNumber
+  Setup: Mock FileHandler with 3 files, request file "-1"
+  Expected: Returns "ERROR: Invalid file number."
+  Purpose: Verify validation of negative numbers
+
+Test 3.4: testDisplayFileNonNumericInput
+  Setup: Mock FileHandler with 3 files, request file "abc"
+  Expected: Returns "ERROR: File number must be a number."
+  Purpose: Verify handling of non-numeric input
+
+Test 3.5: testDisplayFileEmptyString
+  Setup: Mock FileHandler with 3 files, request file ""
+  Expected: Returns "ERROR: File number must be a number."
+  Purpose: Verify handling of empty string input
+
+Test 3.6: testDisplayFileWithBlankKey
+  Setup: Mock FileHandler, request file "1" with blank key ""
+  Expected: Returns raw content (treats blank key as no key)
+  Purpose: Verify blank key is handled same as null key
+
+Test 3.7: testDisplayFileReadException
+  Setup: Mock FileHandler to throw exception on readFile()
+  Expected: Returns "ERROR: Unable to display file."
+  Purpose: Verify error handling when file reading fails
+
+Test 3.8: testDisplayFileCipherException
+  Setup: Mock Cipher to throw exception on loadKey() or decipher()
+  Expected: Returns "ERROR: Unable to display file."
+  Purpose: Verify error handling when deciphering fails
+
+===========================================
+INTEGRATION TESTING NOTES
+===========================================
+
+The following integration tests should be performed once all team members 
+have completed their components:
+
+Integration Test 1: End-to-End File Listing
+  Run: java TopSecret (no arguments)
+  Expected: Displays numbered list of all files in data folder
+  
+Integration Test 2: End-to-End File Display (No Cipher)
+  Run: java TopSecret 01
+  Expected: Displays content of first file (raw or deciphered with default key)
+  
+Integration Test 3: End-to-End File Display (Custom Cipher)
+  Run: java TopSecret 02 ciphers/key.txt
+  Expected: Displays content of second file deciphered with specified key
+  
+Integration Test 4: Invalid Arguments
+  Run: java TopSecret 99
+  Expected: Displays error message for invalid file number
+  
+Integration Test 5: Non-existent Key
+  Run: java TopSecret 01 ciphers/nonexistent.txt
+  Expected: Displays error message for invalid key file
+
+===========================================
+MOCK OBJECTS NEEDED FOR TESTING
+===========================================
+
+For unit testing ProgramController in isolation, we need to create mock objects for:
+
+1. MockFileHandler
+   - Simulates FileHandler behavior
+   - Can be configured to return specific file lists
+   - Can be configured to return specific file contents
+   - Can be configured to throw exceptions
+
+2. MockCipher
+   - Simulates Cipher behavior
+   - Can be configured to return mock CipherKey objects
+   - Can be configured to return deciphered text
+   - Can be configured to throw exceptions
+
+Note: These mocks allow testing ProgramController independently before 
+Team Members B and D complete their implementations.
+
+===========================================
+ASSUMPTIONS & DEPENDENCIES
+===========================================
+
+1. FileHandler.getAvailableFiles() returns files in a consistent order
+2. File numbers are 1-indexed (user sees 01, 02, 03...)
+3. File list is 0-indexed internally (array access uses fileNumber - 1)
+4. Null or blank keyPath means "no cipher" (return raw text)
+5. All error messages start with "ERROR:" for consistency
+6. System.lineSeparator() is used for cross-platform line endings
+7. File numbers are formatted with leading zeros (01, 02, etc.)
