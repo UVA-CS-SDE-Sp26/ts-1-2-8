@@ -8,7 +8,7 @@ PURPOSE: This program is responsible for the command line interface used by the 
 PSEUDOCODE:
 - Instantiate ProgramController object in TopSecret class
 - create logic method within TopSecret to make unit testing on TopSecret easier
-- create set of if statements to allow to condition output/operations on number of arguments given
+- create set of if statements in logic to allow to condition output/operations on number of arguments given
 -if:
  * 0 args given:
     - List numbered files to decipher/display
@@ -17,25 +17,60 @@ PSEUDOCODE:
  * 2 args given: Arg 1 -> file number; Arg 2 -> deciphering key
     - returns contents of file deciphered by specified key
 
-ERROR HANDLING: Check for invalid number of arguments (if-else using args.length)
+METHODS:
 
-Dependencies:
-- FileHandler - uses fileHandler (Part B) through ProgramController
+logic()
+    - Arguments: String[] args
+        -> sent directly from Main method arguments
+    - Function:
+        -> Use ProgramController to call appropriate logic (described in pseudocode) based on arguments given
+    - Output:
+        -> Print statements (Either list of files, deciphered file, or error)
+
+    - Error handling:
+        -> Check for invalid number of arguments (if-else using args.length)
+
+
+DIRECT DEPENDENCIES:
 - ProgramController - creates ProgramController (Part C) object and uses its methods to generate outputs
 
+INDIRECT DEPENDENCIES:
+- FileHandler - uses fileHandler (Part B) via ProgramController
+- Cipher - deciphers file (Part D) via ProgramController
 
-TESTING (Unit tests)
+
+TESTING (Unit tests with Mock ProgramController)
+ - Create mock ProgramController object to test start-to-end functionality
+ - Configured to show functionality without using real file and logic in ProgramController
+
 1) Check output format if zero arguments given
+    - Expected output: check if listFiles() is called
+
 2) Check output format if one argument given
+    - Expected output: print deciphered file corresponding to number argument. Uses default key.
+
 3) Check output format if two arguments given
+    - Expected output: print deciphered file corresponding to number argument. Use specified key.
+
 4) Check to make sure error message shown if more than two arguments given
-5) Check invalid argument given (not integer)
-6) Check invalid second argument (not string)
-- Create mock ProgramController object to test start-to-end functionality
- * Uses listFiles Method when 0 args given
- * Uses displayFile when 1 or 2 args given
+    - Expected output: Print error message
+ 
 
 
-INTEGRATION:
+INTEGRATION TESTS:
 Test using real ProgramController object to test complete compatability of program with various args.
 
+1) Check invalid argument given (String / non-integer argument)
+    - Expected output: Catch error in ProgramController.java
+
+2) Check invalid argument given (too large - ex: 15)
+       - Expected output: if statement recognize invalid argument in ProgramController.java
+
+3) Check invalid second argument (not string)
+    - Expected output: Catch error in fileHandler
+
+4) No files available
+    - Expected output: return error message from fileHandler section (Part B)
+
+5) Check valid arguments (test both one and two)
+    - Expected output: expected output for each context.
