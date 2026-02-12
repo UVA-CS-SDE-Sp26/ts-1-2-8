@@ -7,7 +7,7 @@ public class TopSecret {
 
     private ProgramController controller;
 
-    public TopSecret{
+    public TopSecret(){
         this.controller = new ProgramController();
     }
 
@@ -35,6 +35,6 @@ public class TopSecret {
     }
 
     public static void main(String[] args) {
-        new TopSecret.logic(args);
+        new TopSecret().logic(args);
     }
 }
