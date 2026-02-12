@@ -47,10 +47,10 @@ TESTING (Unit tests with Mock ProgramController)
     - Expected output: check if listFiles() is called
 
 2) Check output format if one argument given
-    - Expected output: print deciphered file corresponding to number argument. Uses default key.
+    - Expected output: check if displayFile() is called and uses default key
 
 3) Check output format if two arguments given
-    - Expected output: print deciphered file corresponding to number argument. Use specified key.
+    - Expected output: check if displayFile() is called and uses specified key
 
 4) Check to make sure error message shown if more than two arguments given
     - Expected output: Print error message
