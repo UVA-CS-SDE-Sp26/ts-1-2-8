@@ -48,6 +48,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.TopSecret.executor": "Run",
     "Gradle.FileHandlerTest.executor": "Run",
     "JUnit.FileHandlerTest.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",

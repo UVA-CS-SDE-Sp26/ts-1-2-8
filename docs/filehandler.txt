@@ -1,126 +1,183 @@
-filehandler.txt
-Homework 2 — Role B (File Handler Design Plan)
+Top Secret – File Handler Design Documentation
+Role B: File Handler
+Date: 2/10/26
 
-1) Role B Responsibilities
-- Own ALL direct access to the filesystem.
-- Provide a clean API for:
-  (a) listing available data files (numbered list)
-  (b) reading the contents of a specific file when requested
-- Do NOT print to console from this module (ProgramControl/UI handle output).
-- Do NOT decipher text here (Cipher module does deciphering). FileHandler returns raw file text.
+===========================================
+ROLE & RESPONSIBILITIES
+===========================================
 
-2) Folder / File Expectations
+Role B is responsible for ALL direct filesystem access in the program.
+
+The FileHandler module:
+- Accesses the operating system filesystem
+- Provides a clean API for listing data files and reading file contents
+- Returns raw file text only
+- Does NOT print to the console
+- Does NOT perform deciphering (handled by Cipher module)
+
+FileHandler serves as the data access layer between the filesystem and ProgramControl.
+
+===========================================
+FOLDER & FILE EXPECTATIONS
+===========================================
+
 - The program expects a folder named: data/
-- Location: in the project root (same level as build.gradle), OR in the working directory when the program runs.
-- Data files are plain text (.txt).
-- File naming:
-  - The CLI uses a “number” argument like: 01, 02, 03, ...
-  - FileHandler maps that number to an actual file.
-  - Recommended naming convention for simplicity:
-      01 filea.txt
-      02 fileb.txt
-      03 filec.txt
-    (Number prefix optional if the team chooses a different mapping strategy, but mapping must be consistent.)
+- Primary location: ./data relative to the working directory
+- Data files must be plain text (.txt)
 
-3) Proposed Public API (Methods)
+File numbering:
+- Users interact with files using numbers: 01, 02, 03, ...
+- FileHandler maps these numbers to actual files
+
+Recommended (not required) naming convention:
+01 filea.txt
+02 fileb.txt
+03 filec.txt
+
+If filenames do not include numeric prefixes, FileHandler assigns numbers after sorting.
+
+===========================================
+DESIGN OVERVIEW
+===========================================
+
 Class: FileHandler
 
-A) listDataFiles()
-- Input: none
-- Output: ordered list of file entries (each entry includes displayNumber and filename)
-- Behavior:
-  - Find all .txt files in data/
-  - Sort them in a stable, predictable order:
-      Option 1 (preferred): sort by filename
-      Option 2: if filenames start with digits, sort by those digits first
-  - Assign display numbers:
-      - If filenames already begin with 2 digits (e.g., "01 filea.txt"), use those digits as displayNumber.
-      - Otherwise assign display numbers sequentially (01, 02, 03...) after sorting.
-- Errors:
-  - If data/ folder missing: return empty list OR throw a specific exception (team decides).
-  - If no .txt files: return empty list.
+Primary responsibility:
+Provide a stable and predictable mapping between user-facing file numbers and actual files on disk.
 
-B) readFileByNumber(String fileNumber)
-- Input: a string like "01"
-- Output: raw file contents as a single String
-- Behavior:
-  - Use listDataFiles() mapping to locate the file for that display number.
-  - Read the entire file content (preserve newlines).
-  - Return content as-is (ciphered or plain).
-- Errors:
-  - If fileNumber not valid or not found: throw FileNotFound-like exception OR return Optional/Result type (team decides).
-  - If file I/O fails: throw IOException-like exception.
+===========================================
+PUBLIC API (METHODS)
+===========================================
 
-C) (Optional helper) resolvePathToDataFolder()
-- Input: none
-- Output: Path object for data/
-- Behavior:
-  - Try these in order:
-    1) "./data" relative to current working directory
-    2) "data" relative to project root if detectable (not always reliable at runtime)
-  - For simplicity, we will treat "./data" as the primary expected location.
+1. List<FileEntry> listDataFiles()
 
-4) Data Structures to Share With ProgramControl (Role C)
-To keep responsibilities clean:
-- FileHandler returns a List<FileEntry> where FileEntry contains:
-  - displayNumber (String, like "01")
-  - filename (String, like "filea.txt" or "01 filea.txt")
-  - path (Path) (optional but helpful)
-ProgramControl uses that list to print:
-  01 filea.txt
-  02 fileb.txt
-  ...
+Purpose:
+Return an ordered list of available data files.
 
-5) Interaction With Cipher (Role D) and ProgramControl (Role C)
-- ProgramControl flow:
-  - If no args:
-      - call FileHandler.listDataFiles()
-      - print list
-      - exit
-  - If arg1 = number:
-      - call FileHandler.readFileByNumber(arg1)
-      - if team has cipher feature:
-          - ProgramControl sends returned raw text to Cipher.decipher(...)
-          - print deciphered output
-      - else:
-          - print raw output
-      - exit
-  - If arg2 = alternate key:
-      - ProgramControl passes arg2 to Cipher module (FileHandler does not use keys)
+Behavior:
+- Locate all .txt files in the data/ folder
+- Sort files in a predictable order (alphabetical by filename)
+- Assign display numbers:
+  - If filenames begin with two digits, reuse those digits
+  - Otherwise assign sequential numbers (01, 02, 03, ...)
 
-6) Error Handling Plan (Owned by FileHandler, Reported by ProgramControl)
-FileHandler should provide clear failure signals so ProgramControl can print a user-friendly message.
-Cases:
+Output:
+- List of FileEntry objects containing:
+  - displayNumber
+  - filename
+  - optional Path
+
+Errors:
+- Missing data/ folder → empty list or exception (team decision)
+- No .txt files → empty list
+
+-------------------------------------------
+
+2. String readFileByNumber(String fileNumber)
+
+Purpose:
+Return the raw contents of a file selected by its display number.
+
+Behavior:
+- Uses listDataFiles() to resolve the file mapping
+- Locates the file corresponding to the given number
+- Reads the entire file content
+- Preserves original formatting and newlines
+- Returns raw text (ciphered or plain)
+
+Errors:
+- Invalid or unmapped file number → exception
+- File read failure (I/O or permissions) → exception
+
+-------------------------------------------
+
+3. (Optional Helper) Path resolvePathToDataFolder()
+
+Purpose:
+Determine the correct path to the data/ directory.
+
+Behavior:
+- Primary assumption: ./data
+- Used internally to centralize path resolution
+
+===========================================
+DATA STRUCTURES SHARED WITH PROGRAMCONTROL
+===========================================
+
+Class: FileEntry
+- String displayNumber (e.g., "01")
+- String filename (e.g., "filea.txt")
+- Path path (optional)
+
+ProgramControl uses this data to display:
+01 filea.txt
+02 fileb.txt
+03 filec.txt
+
+===========================================
+INTERACTION WITH OTHER ROLES
+===========================================
+
+Interaction with ProgramControl (Role C):
+- ProgramControl calls listDataFiles() to display files
+- ProgramControl calls readFileByNumber() to retrieve file contents
+- ProgramControl handles all output and user-facing messages
+
+Interaction with Cipher (Role D):
+- FileHandler has NO interaction with Cipher
+- Raw text returned by FileHandler is passed to Cipher by ProgramControl if needed
+
+===========================================
+ERROR HANDLING STRATEGY
+===========================================
+
+FileHandler detects errors but does not print messages.
+
+Handled cases:
 - data/ folder missing
-- number not mapped to a file
-- file exists but cannot be read (permissions, IO error)
+- Invalid file number
+- File exists but cannot be read
 
 Recommended approach:
-- Throw exceptions with meaningful messages (e.g., "Data folder not found", "No file mapped to 07").
-- ProgramControl catches and prints a single error line and exits gracefully.
+- Throw exceptions with meaningful messages
+- ProgramControl catches exceptions and prints a single error line
 
-7) Testing Boundaries (What Role B Will Unit Test)
-Role B tests should cover:
-- listDataFiles returns correct count and stable ordering
-- numbering behavior (existing numeric prefixes vs sequential numbering)
+===========================================
+TESTING PLAN (ROLE B OWNERSHIP)
+===========================================
+
+FileHandler unit tests should cover:
+
+- listDataFiles returns correct file count
+- Stable ordering of files
+- Correct numbering behavior
 - readFileByNumber returns correct content
-- error cases:
+- Error cases:
   - missing data folder
   - invalid file number
   - unreadable file
-Cipher decoding is NOT tested here (Role D tests that).
 
-8) Task List (Role B Deliverables)
+Cipher decoding is NOT tested here.
+
+===========================================
+ASSUMPTIONS & CONSTRAINTS
+===========================================
+
+1. FileHandler is the only class allowed to access the filesystem
+2. ProgramControl must use FileHandler for all file operations
+3. File numbers are user-facing and 1-indexed
+4. Internal access may be 0-indexed
+5. FileHandler never prints to console
+6. FileHandler never performs deciphering
+
+===========================================
+DELIVERABLES
+===========================================
+
 Week 1:
-- Commit this docs/filehandler.txt
-- Agree with team on:
-  - numbering rule
-  - error signaling style (exceptions vs Optional/Result)
+- Submit docs/filehandler.txt
+- Agree on numbering and error-handling strategy with team
 
 Week 2:
-- Implement FileHandler class and FileEntry structure
-- Implement unit tests for FileHandler
-
-Constraints Reminder:
-- No other class should directly read from the filesystem.
-- ProgramControl must call FileHandler for any file listing or reading.
+- Implement FileHandler and FileEntry
+- Implement unit tests
