@@ -7,9 +7,7 @@ class MockProgramController extends ProgramController{
         if (fileNumber.equals("01") && keyPath == null) {
             return "Mock file 01 contents (default key)";
         } else if (fileNumber.equals("01") && "key.txt".equals(keyPath)) {
-            return "Mock file 01 contents " + keyPath;
-        } else if (!fileNumber.matches("\\d+")) {
-            return "ERROR: File number must be a number.";
+            return "Mock file 01 contents (custom key)";
         } else {
             return "ERROR: Invalid file number.";
         }
@@ -22,12 +20,15 @@ class MockProgramController extends ProgramController{
 }
 
 public class TopSecretTest{
+    /**************
+     *MOCKITO TEST*
+     **************/
+
     @Test
     void testNoArgumentsGiven(){
         TopSecret testInterface = new TopSecret(new MockProgramController());
         String output = testInterface.logic(new String[]{});
         assertTrue(output.contains("filea.txt"), "Should list available files");
-
     }
 
     @Test
@@ -49,5 +50,52 @@ public class TopSecretTest{
         TopSecret testInterface = new TopSecret(new MockProgramController());
         String output = testInterface.logic(new String[]{"01", "key.txt", "third argument"});
         assertTrue(output.contains("Invalid"));
+    }
+
+
+    /*****************
+    *INTEGRATION TEST*
+    ******************/
+
+    @Test
+    void stringArgument(){
+        TopSecret testInterface = new TopSecret();
+        String output = testInterface.logic(new String[]{"string"});
+        assertTrue(output.contains("ERROR: File number"));
+    }
+
+    @Test
+    void largeFileNumberArgument(){
+        TopSecret testInterface = new TopSecret();
+        String output = testInterface.logic(new String[]{"100"});
+        assertTrue(output.contains("ERROR: Invalid"));
+    }
+
+    @Test
+    void intSecondArgument(){
+        TopSecret testInterface = new TopSecret();
+        String output = testInterface.logic(new String[]{"01", "01"});
+        assertTrue(output.contains("FileNotFound"));
+    }
+
+    @Test
+    void noFilesAvailable(){
+        TopSecret testInterface = new TopSecret();
+        String output = testInterface.logic(new String[]{});
+        assertTrue(output.contains("No files found."));
+    }
+
+    @Test
+    void validWithKey(){
+        TopSecret testInterface = new TopSecret();
+        String output = testInterface.logic(new String[]{"01", "key.txt"});
+        assertTrue(!output.isEmpty());
+    }
+
+    @Test
+    void validWithoutKey(){
+        TopSecret testInterface = new TopSecret();
+        String output = testInterface.logic(new String[]{"01"});
+        assertTrue(!output.isEmpty());
     }
 }
