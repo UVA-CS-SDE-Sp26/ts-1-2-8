@@ -19,7 +19,6 @@ class MockProgramController extends ProgramController{
     public String listFiles() {
         return "01 filea.txt\n02 fileb.txt\n03 filec.txt";
     }
-
 }
 
 public class TopSecretTest{
@@ -29,5 +28,26 @@ public class TopSecretTest{
         String output = testInterface.logic(new String[]{});
         assertTrue(output.contains("filea.txt"), "Should list available files");
 
+    }
+
+    @Test
+    void testOneArgument(){
+        TopSecret testInterface = new TopSecret(new MockProgramController());
+        String output = testInterface.logic(new String[]{"01"});
+        assertTrue(output.contains("default key"));
+    }
+
+    @Test
+    void testTwoArgument(){
+        TopSecret testInterface = new TopSecret(new MockProgramController());
+        String output = testInterface.logic(new String[]{"01", "key.txt"});
+        assertTrue(output.contains("custom key"));
+    }
+
+    @Test
+    void testManyArgument(){
+        TopSecret testInterface = new TopSecret(new MockProgramController());
+        String output = testInterface.logic(new String[]{"01", "key.txt", "third argument"});
+        assertTrue(output.contains("Invalid"));
     }
 }
