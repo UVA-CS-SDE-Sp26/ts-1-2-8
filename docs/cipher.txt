@@ -25,7 +25,7 @@ CLASS Cipher
         answer = empty string
 
         FOR each character c in input
-            position ← indexOf(c) in cipher
+            position = indexOf(c) in cipher
             IF position ≥ 0
                 answer += plain.charAt(position)
             ELSE
