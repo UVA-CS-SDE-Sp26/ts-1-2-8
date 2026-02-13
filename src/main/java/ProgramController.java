@@ -7,8 +7,13 @@ public class ProgramController {
 
     // Constructor: create the objects from Role B and Role D
     public ProgramController() {
-        this.fileHandler = new FileHandler();  // Role B
-        this.cipher = new Cipher();            // Role D
+        this(new FileHandler(), new Cipher());
+    }
+
+    // Constructor for testing (dependency injection)
+    public ProgramController(FileHandler fileHandler, Cipher cipher) {
+        this.fileHandler = fileHandler;
+        this.cipher = cipher;
     }
 
     // LIST FILES
