@@ -1,0 +1,67 @@
+Role D - Deciphering implementation
+Vikram Mukherjee
+2/13/2026
+
+The pseudocode below outlines the nature of the 2 classes involved in deciphering
+PSEUDOCODE:
+CLASS Cipher
+
+    METHOD loadKey(keyPath)
+        OPEN file at keyPath
+        READ first line = plain
+        READ second line = cipher
+        CLOSE file
+
+        IF length(plain) != length(cipher)
+            THROW IllegalArgumentException
+
+        RETURN new CipherKey(plain, cipher)
+    END METHOD
+
+
+    METHOD decipher(input, key)
+        plain = key.getPlain()
+        cipher = key.getCipher()
+        answer = empty string
+
+        FOR each character c in input
+            position ← indexOf(c) in cipher
+            IF position ≥ 0
+                answer += plain.charAt(position)
+            ELSE
+                answer += c
+        END FOR
+
+        RETURN answer
+    END METHOD
+
+END CLASS
+
+
+CLASS CipherKey
+
+    CONSTRUCTOR(plain, cipher)
+        this.plain = plain
+        this.cipher = cipher
+    END CONSTRUCTOR
+
+    METHOD getPlain()
+        RETURN plain
+    END METHOD
+
+    METHOD getCipher()
+        RETURN cipher
+    END METHOD
+
+END CLASS
+
+FUNCTIONALITY:
+  Cipher class:
+    Handles the logic for the substitution cipher
+    Reads a key file that defines character mappings and checks that it is valid
+    This is used to decrypt text by replacing each encrypted character with its matching plaintext character
+    It handles both file input and the decryption process
+
+  CipherKey class:
+    Stores the plaintext and ciphertext character sequences
+    It provides access to these strings so the Cipher class can can function during decryption
